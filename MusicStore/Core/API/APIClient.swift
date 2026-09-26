@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol APIClientProtocol: Sendable {
+public protocol APIClientProtocol: Sendable {
     func fetch<D: Decodable & Sendable>(
         baseUrl: String,
         _ provider: APIServiceProvider
@@ -28,7 +28,7 @@ public final class APIClient: APIClientProtocol {
         self.decoder = decoder
     }
     
-    func fetch<D: Decodable & Sendable>(
+    public func fetch<D: Decodable & Sendable>(
         baseUrl: String,
         _ provider: APIServiceProvider
     ) async throws -> D {

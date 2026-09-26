@@ -8,12 +8,22 @@
 import SwiftUI
 
 struct MusicListView: View {
-    @State private var presenter: MusicListPresenter = .init()
-    @State private var query: String = ""
+    @State private var presenter: MusicListPresenter
+    @State private var query: String
+    
+    init(
+        query: String = ""
+    ) {
+        self._presenter = State(
+            initialValue: MusicsPresenterFactory().makeMusicListPresenter()
+        )
+        
+        self.query = query
+    }
     
     var body: some View {
-        List(presenter.lists, id: \.self) { list in
-            Text("\(list)")
+        List(presenter.musics, id: \.id) { music in
+            Text(music.trackName)
         }.searchable(
             text: $query
         ).navigationTitle(
@@ -23,5 +33,15 @@ struct MusicListView: View {
 }
 
 #Preview {
-    MusicListView()
+    struct PreviewWrapper: View {
+        init() {
+            MusicsContainer.registerDepedencies()
+        }
+        
+        var body: some View {
+            MusicListView()
+        }
+    }
+    
+    return PreviewWrapper()
 }

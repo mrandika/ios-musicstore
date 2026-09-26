@@ -37,7 +37,7 @@ struct RemoteImageView: View {
                             cornerRadius: CornerRadius.medium.points
                         )
                     )
-            case .failure(let error):
+            case .failure(_):
                 Image(systemName: "wifi.slash")
             @unknown default:
                 EmptyView()
