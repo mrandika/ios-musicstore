@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MusicListView: View {
-    @State private var playerManager = AudioPlayerManager()
+    @Environment(AudioPlayerManager.self) var playerManager
     
     @State private var presenter: MusicListPresenter
     @State private var query: String
@@ -29,8 +29,7 @@ struct MusicListView: View {
         List(presenter.musics, id: \.id) { music in
             Button(action: {
                 toggleMusic(
-                    musicId: music.id,
-                    previewLink: music.previewLink
+                    musicId: music.id
                 )
             }, label: {
                 SongItem(
@@ -39,7 +38,7 @@ struct MusicListView: View {
                     collection: music.collectionName,
                     artists: music.artistName,
                     isExplicit: false,
-                    isPlayed: playerManager.currentURL == music.previewLink && playerManager.isPlaying
+                    isPlayed: playerManager.currentMusic?.id == music.id && playerManager.isPlaying
                 )
             }).buttonStyle(.plain)
         }.stateAware(
@@ -48,53 +47,36 @@ struct MusicListView: View {
             isEmpty: presenter.musics.isEmpty,
             recoveryAction: {
                 Task {
-                    await debounceAndFetch(with: query)
+                    await presenter.debounceAndFetch(with: query)
                 }
             }
         ).searchable(
-            text: $query
+            text: $query,
+            placement: .toolbar,
+            prompt: "Artists or Song name"
         ).task(
             id: query
         ) {
             if query.isEmpty { return }
             
-            await debounceAndFetch(with: query)
+            await presenter.debounceAndFetch(with: query)
         }.navigationTitle(
             "Library"
         )
     }
     
-    func debounceAndFetch(with query: String) async {
-        do {
-            try await Task.sleep(for: .milliseconds(500))
-            await presenter.searchMusic(with: query)
-        } catch {
-            // Task was cancelled because query changed again is expected, ignore
-        }
-    }
-    
-    func toggleMusic(musicId: Int, previewLink: String) {
-        if currentPlayId == musicId {
+    func toggleMusic(musicId: Int) {
+        if playerManager.currentMusic?.id == musicId {
             if playerManager.isPlaying {
                 playerManager.pause()
             } else {
                 playerManager.resume()
             }
         } else {
-            let queue = presenter.musics.map {
-                MusicQueueModel(id: $0.id, previewUrl: $0.previewLink)
-            }
-            
             guard let startIndex = presenter.musics.firstIndex(where: { $0.id == musicId }) else {
                 return
             }
-            
-            playerManager.play(
-                queue: queue.map { $0.previewUrl },
-                startAt: startIndex
-            )
-            
-            currentPlayId = musicId
+            playerManager.play(queue: presenter.musics, startAt: startIndex)
         }
     }
 }
@@ -111,4 +93,5 @@ struct MusicListView: View {
     }
     
     return PreviewWrapper()
+        .environment(AudioPlayerManager())
 }

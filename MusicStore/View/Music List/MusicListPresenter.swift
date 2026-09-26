@@ -43,3 +43,14 @@ public final class MusicListPresenter: MusicListPresenterProtocol {
         }
     }
 }
+
+extension MusicListPresenter {
+    public func debounceAndFetch(with query: String) async {
+        do {
+            try await Task.sleep(for: .milliseconds(500))
+            await self.searchMusic(with: query)
+        } catch {
+            // Task was cancelled because query changed again is expected, ignore
+        }
+    }
+}

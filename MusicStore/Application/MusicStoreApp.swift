@@ -10,14 +10,17 @@ import AVFoundation
 
 @main
 struct MusicStoreApp: App {
+    @State private var playerManager = AudioPlayerManager()
+    
     init() {
         configureAudioSession()
     }
     
     var body: some Scene {
+        
         WindowGroup {
             ContentView()
-        }
+        }.environment(playerManager)
     }
 
     func configureAudioSession() {

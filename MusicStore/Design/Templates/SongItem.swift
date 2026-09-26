@@ -37,7 +37,7 @@ struct SongItem: View {
             alignment: .top,
             spacing: Spacing.large.points
         ) {
-            RemoteImageView(artwork, width: 64, heigt: 64)
+            RemoteImageView(artwork, width: 64, height: 64)
             
             VStack(
                 alignment: .leading,
