@@ -12,27 +12,35 @@ struct SongScrubberView: View {
     var duration: Double
     var onSeek: (Double) -> Void
     
-    @State private var isDragging = false
+    @GestureState private var isDragging = false
     @State private var dragValue: Double = 0
+    
+    private var sliderValue: Binding<Double> {
+        Binding(
+            get: { isDragging ? dragValue : currentTime },
+            set: { dragValue = $0 }
+        )
+    }
     
     var body: some View {
         VStack(spacing: Spacing.xSmall.points) {
             Slider(
-                value: Binding(
-                    get: { isDragging ? dragValue : currentTime },
-                    set: { newValue in
-                        isDragging = true
-                        dragValue = newValue
-                    }
-                ),
-                in: 0...max(duration, 1),
-                onEditingChanged: { editing in
-                    if !editing {
-                        onSeek(dragValue)
-                        isDragging = false
-                    }
-                }
+                value: sliderValue,
+                in: 0...max(duration, 1)
             )
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .updating($isDragging) { _, state, _ in
+                        state = true
+                    }
+            )
+            .onChange(of: isDragging) { _, dragging in
+                if dragging {
+                    dragValue = currentTime
+                } else {
+                    onSeek(dragValue)
+                }
+            }
             
             HStack {
                 Text(formatTime(isDragging ? dragValue : currentTime))
