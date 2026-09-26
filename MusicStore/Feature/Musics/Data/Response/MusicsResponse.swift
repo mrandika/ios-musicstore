@@ -14,9 +14,10 @@ struct MusicsResponse: Decodable, Sendable {
 
 struct MusicDataResponse: Decodable, Sendable {
     let trackId: Int
+    let trackExplicitness: String
     let artistName: String
     let collectionName: String
     let trackName: String
-    let previewURL: String
+    let previewUrl: String
     let artworkUrl100: String
 }

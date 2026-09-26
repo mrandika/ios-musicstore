@@ -9,6 +9,7 @@ import Foundation
 
 public struct MusicModel: Identifiable, Sendable {
     public let id: Int
+    public let isExplicit: Bool
     public let artistName: String
     public let collectionName: String
     public let trackName: String

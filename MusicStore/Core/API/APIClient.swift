@@ -48,9 +48,7 @@ public final class APIClient: APIClientProtocol {
         
         // Build query items
         if !provider.service.queryItems.isEmpty {
-            components.queryItems = provider.service.queryItems.map {
-                URLQueryItem(name: $0.key, value: $0.value)
-            }
+            components.queryItems = provider.service.queryItems
         }
         
         // Check the url after building the query items

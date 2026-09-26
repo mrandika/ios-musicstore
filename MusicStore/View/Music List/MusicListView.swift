@@ -23,12 +23,42 @@ struct MusicListView: View {
     
     var body: some View {
         List(presenter.musics, id: \.id) { music in
-            Text(music.trackName)
-        }.searchable(
+            SongItem(
+                artwork: music.artworkUrl,
+                name: music.trackName,
+                collection: music.collectionName,
+                artists: music.artistName,
+                isExplicit: false
+            )
+        }.stateAware(
+            isLoading: presenter.isLoading,
+            error: presenter.error,
+            isEmpty: presenter.musics.isEmpty,
+            recoveryAction: {
+                Task {
+                    await debounceAndFetch(with: query)
+                }
+            }
+        ).searchable(
             text: $query
-        ).navigationTitle(
+        ).task(
+            id: query
+        ) {
+            if query.isEmpty { return }
+            
+            await debounceAndFetch(with: query)
+        }.navigationTitle(
             "Home"
         )
+    }
+    
+    func debounceAndFetch(with query: String) async {
+        do {
+            try await Task.sleep(for: .milliseconds(500))
+            await presenter.searchMusic(with: query)
+        } catch {
+            // Task was cancelled because query changed again is expected, ignore
+        }
     }
 }
 

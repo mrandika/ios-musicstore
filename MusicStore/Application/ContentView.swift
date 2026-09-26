@@ -16,5 +16,15 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    struct PreviewWrapper: View {
+        init() {
+            MusicsContainer.registerDepedencies()
+        }
+        
+        var body: some View {
+            ContentView()
+        }
+    }
+    
+    return PreviewWrapper()
 }

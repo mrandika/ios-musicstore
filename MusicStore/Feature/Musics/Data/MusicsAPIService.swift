@@ -25,8 +25,8 @@ enum MusicListAPIService: APIServiceProvider {
                 endpoint,
                 method: .get,
                 queryItems: [
-                    "term": term,
-                    "entity": "music"
+                    URLQueryItem(name: "term", value: term),
+                    URLQueryItem(name: "entity", value: "song")
                 ]
             )
         }
