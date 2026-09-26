@@ -37,7 +37,7 @@ struct MusicListView: View {
                     name: music.trackName,
                     collection: music.collectionName,
                     artists: music.artistName,
-                    isExplicit: false,
+                    isExplicit: music.isExplicit,
                     isPlayed: playerManager.currentMusic?.id == music.id && playerManager.isPlaying
                 )
             }).buttonStyle(.plain)
@@ -84,7 +84,7 @@ struct MusicListView: View {
 #Preview {
     struct PreviewWrapper: View {
         init() {
-            MusicsContainer.registerDepedencies()
+            MusicsContainer.registerDependencies()
         }
         
         var body: some View {

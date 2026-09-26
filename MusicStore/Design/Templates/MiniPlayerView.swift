@@ -37,8 +37,7 @@ struct MiniPlayerView: View {
                 
                 HStack(spacing: Spacing.large.points) {
                     Button(action: {
-                        playerManager.isPaused ? playerManager
-                            .resume() : playerManager.pause()
+                        playerManager.togglePlayPause()
                     }, label: {
                         ImageButtonLabel(
                             systemName: playerManager.isPlaying ? "pause.fill" : "play.fill"

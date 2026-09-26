@@ -9,119 +9,157 @@ import AVFoundation
 import Observation
 
 enum PlaybackStatus: Equatable {
-    case idle       // nothing loaded
+    case idle
     case playing
     case paused
+    case ended
 }
 
 @MainActor
 @Observable
-class AudioPlayerManager {
+final class AudioPlayerManager {
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
     private var timeObserver: Any?
-    
-    private(set) var queue: [MusicModel] = []
-    private(set) var currentIndex: Int?
+    private var durationTask: Task<Void, Never>?
+
+    private(set) var queue = PlaybackQueue()
     private(set) var status: PlaybackStatus = .idle
-    
     private(set) var currentTime: Double = 0
     private(set) var duration: Double = 0
-    
-    var currentMusic: MusicModel? {
-        guard let currentIndex, queue.indices.contains(currentIndex) else { return nil }
-        return queue[currentIndex]
-    }
-    
+
+    var currentMusic: MusicModel? { queue.current }
     var isPlaying: Bool { status == .playing }
     var isPaused: Bool { status == .paused }
-    
-    func play(queue: [MusicModel], startAt index: Int) {
-        self.queue = queue
-        playItem(at: index)
+
+    isolated deinit {                       // Swift 6.2 / Xcode 26
+        cleanupObservers()
     }
-    
+
+    func play(queue items: [MusicModel], startAt index: Int) {
+        guard let track = queue.load(items, startAt: index) else { return }
+        playItem(track)
+    }
+
     func pause() {
+        guard status == .playing else { return }
         player?.pause()
         status = .paused
     }
-    
+
     func resume() {
+        guard status == .paused else { return }
         player?.play()
         status = .playing
     }
-    
+
+    func restart() {
+        guard status == .ended else { return }
+        seek(to: 0)
+        player?.play()
+        status = .playing
+    }
+
+    func togglePlayPause() {
+        switch status {
+        case .playing: pause()
+        case .paused:  resume()
+        case .ended:   restart()
+        case .idle:    break
+        }
+    }
+
     func playNext() {
-        guard let currentIndex else { return }
-        let nextIndex = currentIndex + 1
-        guard queue.indices.contains(nextIndex) else {
-            status = .idle
+        guard let next = queue.advance() else {
+            stopAtEnd()
             return
         }
-        playItem(at: nextIndex)
+        playItem(next)
     }
-    
+
     func playPrevious() {
-        guard let currentIndex else { return }
-        let prevIndex = currentIndex - 1
-        guard queue.indices.contains(prevIndex) else { return }
-        playItem(at: prevIndex)
+        if currentTime > 3 { seek(to: 0); return }   // standard "restart current" behavior
+
+        guard let previous = queue.rewind() else { seek(to: 0); return }
+        playItem(previous)
     }
-    
+
     func seek(to time: Double) {
-        let cmTime = CMTime(seconds: time, preferredTimescale: 600)
-        player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        player?.seek(
+            to: CMTime(seconds: time, preferredTimescale: 600),
+            toleranceBefore: .zero,
+            toleranceAfter: .zero
+        )
         currentTime = time
     }
-    
-    private func playItem(at index: Int) {
-        guard queue.indices.contains(index),
-              let url = URL(string: queue[index].previewLink) else { return }
-        
+
+    private func playItem(_ music: MusicModel) {
+        guard let url = music.previewUrl else { return }
+
         cleanupObservers()
-        
-        currentIndex = index
+        durationTask?.cancel()
+
         currentTime = 0
         duration = 0
-        
-        let asset = AVURLAsset(url: url)
-        let playerItem = AVPlayerItem(asset: asset)
-        player = AVPlayer(playerItem: playerItem)
-        player?.play()
         status = .playing
-        
-        Task {
-            await loadDuration(from: url)
-        }
-        
+
+        let item = AVPlayerItem(url: url)
+        player = AVPlayer(playerItem: item)
+        player?.play()
+
+        observe(item)
+        loadDuration(for: item)
+    }
+
+    private func observe(_ item: AVPlayerItem) {
         timeObserver = player?.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),
             queue: .main
         ) { [weak self] time in
-            self?.currentTime = time.seconds
+            guard let self, self.player?.currentItem === item else { return }
+            self.currentTime = time.seconds
         }
-        
+
         endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
-            object: playerItem,
+            object: item,
             queue: .main
         ) { [weak self] _ in
-            self?.playNext()
+            self?.handleTrackEnded()
         }
     }
-    
-    private func loadDuration(from url: URL) async {
-        let asset = AVURLAsset(url: url)
-        guard let loaded = try? await asset.load(.duration) else { return }
-        self.duration = loaded.seconds
+
+    private func handleTrackEnded() {
+        guard let next = queue.advance() else {
+            stopAtEnd()
+            return
+        }
+        playItem(next)
     }
-    
+
+    private func stopAtEnd() {
+        player?.pause()
+        status = .ended
+    }
+
+    private func loadDuration(for item: AVPlayerItem) {
+        durationTask = Task { [weak self] in
+            guard let loaded = try? await item.asset.load(.duration) else { return }
+            guard let self, !Task.isCancelled,
+                  self.player?.currentItem === item else { return }   // stale load can't win
+            self.duration = loaded.seconds
+        }
+    }
+
     private func cleanupObservers() {
         if let endObserver {
             NotificationCenter.default.removeObserver(endObserver)
+            self.endObserver = nil
         }
         if let timeObserver {
             player?.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
         }
     }
 }
+

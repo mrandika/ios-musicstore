@@ -14,8 +14,6 @@ public protocol MusicListPresenterProtocol: Sendable {
 
 @Observable
 public final class MusicListPresenter: MusicListPresenterProtocol {
-    let lists: [Int] = [1,2,3]
-    
     let interactor: MusicsInteractorProtocol
     
     public var isLoading: Bool = false
@@ -38,6 +36,9 @@ public final class MusicListPresenter: MusicListPresenterProtocol {
         
         do {
             self.musics = try await interactor.searchMusic(with: term)
+        } catch is CancellationError {
+            // Do nothing when cancelled, superseded by newer term
+            return
         } catch {
             self.error = error
         }
@@ -48,9 +49,10 @@ extension MusicListPresenter {
     public func debounceAndFetch(with query: String) async {
         do {
             try await Task.sleep(for: .milliseconds(500))
-            await self.searchMusic(with: query)
         } catch {
-            // Task was cancelled because query changed again is expected, ignore
+            return
         }
+        
+        await searchMusic(with: query)
     }
 }

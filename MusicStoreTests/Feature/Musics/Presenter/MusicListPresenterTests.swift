@@ -227,4 +227,25 @@ struct MusicListPresenterTests {
         #expect(presenter.musics.isEmpty)
         #expect(presenter.error == nil)
     }
+    
+    @Test("Cancelling an in-flight search does not surface an error")
+    func cancelledSearchStaysSilent() async throws {
+        MockURLProtocol.requestHandler = { request in
+            Thread.sleep(forTimeInterval: 0.5)
+            let response = HTTPURLResponse(
+                url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil
+            )!
+            return (response, Data(searchResponseJSON.utf8))
+        }
+
+        let presenter = makePresenter()
+        let task = Task { await presenter.searchMusic(with: "taylor swift") }
+        try await Task.sleep(for: .milliseconds(50))
+        task.cancel()
+        await task.value
+
+        #expect(presenter.error == nil)
+        #expect(presenter.musics.isEmpty)
+        #expect(presenter.isLoading == false)
+    }
 }

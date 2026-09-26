@@ -8,32 +8,10 @@
 import Foundation
 
 @MainActor
-public final class MusicsContainer {
-    public static func registerDepedencies() {
-        registerMusics()
-    }
-}
-
-@MainActor
-public class MusicsResolver {
-    internal static let musicsRepository = try! DependencyContainer.shared.resolve(MusicsRepositoryProtocol.self)
-    public static let musicsInteractor = try! DependencyContainer.shared.resolve(MusicsInteractorProtocol.self)
-}
-
-extension MusicsContainer {
-    private static func registerMusics() {
-        DependencyContainer.shared.register(
-            MusicsRepositoryProtocol.self,
-            MusicsRepository(
-                client: APIClient.shared
-            )
-        )
-        
-        DependencyContainer.shared.register(
-            MusicsInteractorProtocol.self,
-            MusicsInteractor(
-                repository: MusicsResolver.musicsRepository
-            )
-        )
+public enum MusicsContainer {
+    public static func registerDependencies(in container: DependencyContainer = .shared) {
+        let repository = MusicsRepository(client: APIClient.shared)
+        container.register(MusicsRepositoryProtocol.self, repository)
+        container.register(MusicsInteractorProtocol.self, MusicsInteractor(repository: repository))
     }
 }
