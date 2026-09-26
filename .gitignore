@@ -59,11 +59,3 @@ iOSInjectionProject/
 
 # macOS
 .DS_Store
-
-# XcodeGen
-# project.yml is the source of truth; the generated project is derived from it.
-*.xcodeproj/
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-*.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
