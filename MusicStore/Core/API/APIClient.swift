@@ -66,6 +66,9 @@ public final class APIClient: APIClientProtocol {
         // Fetch
         do {
             (data, response) = try await session.data(for: request)
+        } catch let error as URLError where error.code == .cancelled {
+            // Throw CancellationError instead when cancelled
+            throw CancellationError()
         } catch {
             throw APIError.transportError(error)
         }

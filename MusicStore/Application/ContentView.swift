@@ -38,7 +38,7 @@ struct ContentView: View {
 #Preview {
     struct PreviewWrapper: View {
         init() {
-            MusicsContainer.registerDepedencies()
+            MusicsContainer.registerDependencies()
         }
         
         var body: some View {
