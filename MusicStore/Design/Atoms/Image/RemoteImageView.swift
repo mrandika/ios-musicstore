@@ -16,11 +16,11 @@ struct RemoteImageView: View {
     init(
         _ imageUrl: URL? = nil,
         width: CGFloat = 100,
-        heigt: CGFloat = 100
+        height: CGFloat = 100
     ) {
         self.imageUrl = imageUrl
         self.width = width
-        self.height = heigt
+        self.height = height
     }
     
     var body: some View {
@@ -37,7 +37,7 @@ struct RemoteImageView: View {
                             cornerRadius: CornerRadius.medium.points
                         )
                     )
-            case .failure(let error):
+            case .failure(_):
                 Image(systemName: "wifi.slash")
             @unknown default:
                 EmptyView()

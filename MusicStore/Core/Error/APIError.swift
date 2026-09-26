@@ -23,7 +23,7 @@ public enum APIError: Error, LocalizedError {
             return "Could not construct a valid URL."
         case .invalidResponse:
             return "The server response was not a valid HTTP response."
-        case .httpError(let statusCode, let data):
+        case .httpError(let statusCode, _):
             return "Request failed with status code \(statusCode)."
         case .transportError(let error):
             return "Network request failed: \(error.localizedDescription)"

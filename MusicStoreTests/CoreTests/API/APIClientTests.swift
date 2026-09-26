@@ -56,7 +56,7 @@ struct APIClientTests {
         
         let provider = MockProvider(
             endpoint: "/search",
-            service: APIService("/search", method: .get, queryItems: ["limit": "100"])
+            service: APIService("/search", method: .get, queryItems: [URLQueryItem(name: "limit", value: "100")])
         )
         
         let _: MockResponse = try await client.fetch(

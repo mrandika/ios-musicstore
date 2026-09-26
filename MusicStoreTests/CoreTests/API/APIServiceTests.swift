@@ -6,17 +6,18 @@
 //
 
 import Testing
+import Foundation
 @testable import MusicStore
 
 @Suite("APIService")
 struct APIServiceTests {
     @Test("Initializes with provided endpoint, method, and query items")
     func initWithAllParams() {
-        let service = APIService("/search", method: .get, queryItems: ["limit": "100"])
+        let service = APIService("/search", method: .get, queryItems: [URLQueryItem(name: "limit", value: "100")])
 
         #expect(service.endpoint == "/search")
         #expect(service.method == .get)
-        #expect(service.queryItems == ["limit": "100"])
+        #expect(service.queryItems == [URLQueryItem(name: "limit", value: "100")])
     }
 
     @Test("Defaults queryItems to empty dictionary when omitted")
@@ -28,11 +29,18 @@ struct APIServiceTests {
 
     @Test("Stores multiple query items correctly")
     func multipleQueryItems() {
-        let service = APIService("/search", method: .get, queryItems: ["term": "swift", "entity": "song"])
+        let service = APIService(
+            "/search",
+            method: .get,
+            queryItems: [
+                URLQueryItem(name: "term", value: "swift"),
+                URLQueryItem(name: "entity", value: "song")
+            ]
+        )
 
         #expect(service.queryItems.count == 2)
-        #expect(service.queryItems["term"] == "swift")
-        #expect(service.queryItems["entity"] == "song")
+        #expect(service.queryItems.contains(URLQueryItem(name: "term", value: "swift")))
+        #expect(service.queryItems.contains(URLQueryItem(name: "entity", value: "song")))
     }
 
     @Test("Supports all HTTP methods", arguments: [

@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol APIClientProtocol: Sendable {
+public protocol APIClientProtocol: Sendable {
     func fetch<D: Decodable & Sendable>(
         baseUrl: String,
         _ provider: APIServiceProvider
@@ -28,7 +28,7 @@ public final class APIClient: APIClientProtocol {
         self.decoder = decoder
     }
     
-    func fetch<D: Decodable & Sendable>(
+    public func fetch<D: Decodable & Sendable>(
         baseUrl: String,
         _ provider: APIServiceProvider
     ) async throws -> D {
@@ -48,9 +48,7 @@ public final class APIClient: APIClientProtocol {
         
         // Build query items
         if !provider.service.queryItems.isEmpty {
-            components.queryItems = provider.service.queryItems.map {
-                URLQueryItem(name: $0.key, value: $0.value)
-            }
+            components.queryItems = provider.service.queryItems
         }
         
         // Check the url after building the query items
