@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct MusicListView: View {
+    @State private var playerManager = AudioPlayerManager()
+    
     @State private var presenter: MusicListPresenter
     @State private var query: String
+    
+    @State private var currentPlayId: Int?
     
     init(
         query: String = ""
@@ -23,13 +27,21 @@ struct MusicListView: View {
     
     var body: some View {
         List(presenter.musics, id: \.id) { music in
-            SongItem(
-                artwork: music.artworkUrl,
-                name: music.trackName,
-                collection: music.collectionName,
-                artists: music.artistName,
-                isExplicit: false
-            )
+            Button(action: {
+                toggleMusic(
+                    musicId: music.id,
+                    previewLink: music.previewLink
+                )
+            }, label: {
+                SongItem(
+                    artwork: music.artworkUrl,
+                    name: music.trackName,
+                    collection: music.collectionName,
+                    artists: music.artistName,
+                    isExplicit: false,
+                    isPlayed: music.id == currentPlayId && playerManager.isPlaying
+                )
+            }).buttonStyle(.plain)
         }.stateAware(
             isLoading: presenter.isLoading,
             error: presenter.error,
@@ -48,7 +60,7 @@ struct MusicListView: View {
             
             await debounceAndFetch(with: query)
         }.navigationTitle(
-            "Home"
+            "Library"
         )
     }
     
@@ -58,6 +70,19 @@ struct MusicListView: View {
             await presenter.searchMusic(with: query)
         } catch {
             // Task was cancelled because query changed again is expected, ignore
+        }
+    }
+    
+    func toggleMusic(musicId: Int, previewLink: String) {
+        if currentPlayId == musicId {
+            if playerManager.isPlaying {
+                playerManager.pause()
+            } else {
+                playerManager.resume()
+            }
+        } else {
+            playerManager.play(urlString: previewLink)
+            currentPlayId = musicId
         }
     }
 }

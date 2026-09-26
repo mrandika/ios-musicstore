@@ -14,18 +14,22 @@ struct SongItem: View {
     var artists: String
     var isExplicit: Bool
     
+    var isPlayed: Bool
+    
     init(
         artwork: URL? = nil,
         name: String,
         collection: String,
         artists: String,
-        isExplicit: Bool
+        isExplicit: Bool,
+        isPlayed: Bool
     ) {
         self.artwork = artwork
         self.name = name
         self.collection = collection
         self.artists = artists
         self.isExplicit = isExplicit
+        self.isPlayed = isPlayed
     }
     
     var body: some View {
@@ -44,8 +48,12 @@ struct SongItem: View {
                     
                     Spacer()
                     
-                    AnimatedSystemImage("music.quarternote.3", isActive: true)
-                        .frame(width: 18)
+                    if isPlayed {
+                        AnimatedSystemImage(
+                            "music.quarternote.3",
+                            isActive: true
+                        ).frame(width: 18)
+                    }
                 }
                 
                 SongArtistNameView(name: artists)
@@ -64,7 +72,8 @@ struct SongItem: View {
             name: "City of Stars",
             collection: "La La Land (Original Motion Picture Soundtrack)",
             artists: "Ryan Gosling & Emma Stone",
-            isExplicit: false
+            isExplicit: false,
+            isPlayed: false
         )
     }.listStyle(.plain)
 }
