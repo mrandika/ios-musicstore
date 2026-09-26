@@ -39,7 +39,7 @@ struct MusicListView: View {
                     collection: music.collectionName,
                     artists: music.artistName,
                     isExplicit: false,
-                    isPlayed: music.id == currentPlayId && playerManager.isPlaying
+                    isPlayed: playerManager.currentURL == music.previewLink && playerManager.isPlaying
                 )
             }).buttonStyle(.plain)
         }.stateAware(
@@ -81,7 +81,19 @@ struct MusicListView: View {
                 playerManager.resume()
             }
         } else {
-            playerManager.play(urlString: previewLink)
+            let queue = presenter.musics.map {
+                MusicQueueModel(id: $0.id, previewUrl: $0.previewLink)
+            }
+            
+            guard let startIndex = presenter.musics.firstIndex(where: { $0.id == musicId }) else {
+                return
+            }
+            
+            playerManager.play(
+                queue: queue.map { $0.previewUrl },
+                startAt: startIndex
+            )
+            
             currentPlayId = musicId
         }
     }

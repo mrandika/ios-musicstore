@@ -48,12 +48,12 @@ struct SongItem: View {
                     
                     Spacer()
                     
-                    if isPlayed {
-                        AnimatedSystemImage(
-                            "music.quarternote.3",
-                            isActive: true
-                        ).frame(width: 18)
-                    }
+                    AnimatedSystemImage(
+                        "music.quarternote.3",
+                        isActive: isPlayed
+                    ).frame(width: 18)
+                        .opacity(isPlayed ? 1 : 0)
+                        .animation(.easeIn, value: isPlayed)
                 }
                 
                 SongArtistNameView(name: artists)
