@@ -60,11 +60,17 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify
 
+      - name: Package simulator app
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/MusicStore.app" \
+            MusicStore-simulator.zip
+
       - name: Upload simulator app
         uses: actions/upload-artifact@v4
         with:
           name: simulator-app
-          path: ${{ env.DERIVED_DATA_PATH }}/Build/Products/Debug-iphonesimulator/MusicStore.app
+          path: MusicStore-simulator.zip
 
       - name: Test
         shell: bash
@@ -98,10 +104,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: simulator-app
-          path: app
-
-      - name: Package simulator app
-        run: ditto -c -k --sequesterRsrc --keepParent app/MusicStore.app MusicStore-simulator.zip
 
       - name: Publish simulator build to releases
         env:
