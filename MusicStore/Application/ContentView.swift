@@ -35,8 +35,6 @@ struct ContentView: View {
     }
 }
 
-
-
 #Preview {
     struct PreviewWrapper: View {
         init() {
