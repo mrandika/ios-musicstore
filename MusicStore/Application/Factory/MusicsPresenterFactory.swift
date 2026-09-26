@@ -8,8 +8,12 @@
 import Foundation
 
 struct MusicsPresenterFactory: MusicsPresenterFactoryProtocol {
-    private let injection = Injection()
-    
+    private let injection: Injection
+
+    init(injection: Injection = Injection()) {
+        self.injection = injection
+    }
+
     func makeMusicListPresenter() -> MusicListPresenter {
         MusicListPresenter(interactor: injection.provideMusicInteractor())
     }

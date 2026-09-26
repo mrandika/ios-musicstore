@@ -47,11 +47,11 @@ jobs:
           echo "Using simulator: $DEVICE"
           echo "device=$DEVICE" >> "$GITHUB_OUTPUT"
 
-      - name: Build
+      - name: Build for testing
         shell: bash
         run: |
           set -o pipefail
-          xcodebuild build \
+          xcodebuild build-for-testing \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "platform=iOS Simulator,name=${{ steps.destination.outputs.device }}" \
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          xcodebuild test \
+          xcodebuild test-without-building \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "platform=iOS Simulator,name=${{ steps.destination.outputs.device }}" \

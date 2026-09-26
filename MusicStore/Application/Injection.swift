@@ -8,19 +8,18 @@
 import Foundation
 
 @MainActor
-final class Injection: NSObject {
-    override init() {
-        super.init()
-        setupDependencies()
-    }
-    
-    public func provideMusicInteractor() -> MusicsInteractorProtocol {
-        return MusicsResolver.musicsInteractor
-    }
-}
+final class Injection {
+    private let interactor: MusicsInteractorProtocol
 
-extension Injection {
-    private func setupDependencies() {
-        MusicsContainer.registerDepedencies()
+    init(container: DependencyContainer = .shared) {
+        MusicsContainer.registerDependencies(in: container)
+        
+        guard let interactor = try? container.resolve(MusicsInteractorProtocol.self) else {
+            preconditionFailure("MusicsInteractorProtocol is not registered.")
+        }
+        
+        self.interactor = interactor
     }
+
+    func provideMusicInteractor() -> MusicsInteractorProtocol { interactor }
 }
