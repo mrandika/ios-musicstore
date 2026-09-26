@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "679CED0C-B321-4C81-AD5F-3667BE0699F7",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MusicStore.xcodeproj",
+      "identifier" : "090C0B1E30676DE800CA2501",
+      "name" : "MusicStore"
+    },
+    "testInteropMode" : "complete"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:MusicStore.xcodeproj",
+        "identifier" : "090C0B2B30676DEA00CA2501",
+        "name" : "MusicStoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}

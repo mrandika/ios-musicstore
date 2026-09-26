@@ -60,6 +60,12 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify
 
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-app
+          path: ${{ env.DERIVED_DATA_PATH }}/Build/Products/Debug-iphonesimulator/MusicStore.app
+
       - name: Test
         shell: bash
         run: |
@@ -79,3 +85,32 @@ jobs:
         with:
           name: test-results
           path: TestResults.xcresult
+
+  release:
+    needs: build-and-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-26
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download simulator app
+        uses: actions/download-artifact@v4
+        with:
+          name: simulator-app
+          path: app
+
+      - name: Package simulator app
+        run: ditto -c -k --sequesterRsrc --keepParent app/MusicStore.app MusicStore-simulator.zip
+
+      - name: Publish simulator build to releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view simulator-build >/dev/null 2>&1; then
+            gh release create simulator-build \
+              --title "Simulator Build" \
+              --notes "Latest iOS Simulator build of MusicStore from \`${{ github.sha }}\`" \
+              --latest
+          fi
+          gh release upload simulator-build MusicStore-simulator.zip --clobber
